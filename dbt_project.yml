@@ -1,0 +1,28 @@
+name: data_warehouse_dbt
+version: '1.0'
+config-version: 2
+
+profile: my_azure_project
+
+model-paths: ['models']
+seed-paths: ['seeds']
+analysis-paths: ['analyses']
+test-paths: ['tests']
+macro-paths: ['macros']
+snapshot-paths: ['snapshots']
+
+# Model configurations per layer
+models:
+  data_warehouse_dbt:
+    silver:
+      +schema: silver
+      +materialized: table
+    gold:
+      +schema: gold
+      +materialized: view
+
+# Seed configurations (your raw CSVs land in bronze schema)
+seeds:
+  data_warehouse_dbt:
+    +schema: bronze
+    +quote_columns: false

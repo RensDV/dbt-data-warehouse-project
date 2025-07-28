@@ -1,0 +1,20 @@
+﻿version: 2
+
+seeds:
+  - name: crm_cust_info
+    description: "Raw customer info extracted from the CRM system."
+
+  - name: crm_prd_info
+    description: "Raw product master data from the CRM source."
+
+  - name: crm_sales_details
+    description: "Unprocessed sales detail records from CRM exports."
+
+  - name: erp_cust_az12
+    description: "Raw customer data from the ERP system (AZ12 module)."
+
+  - name: erp_loc_a101
+    description: "ERP system location data from module A101, unprocessed."
+
+  - name: erp_px_cat_g1v2
+    description: "Raw price category definitions from ERP module G1V2."

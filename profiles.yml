@@ -1,0 +1,14 @@
+﻿my_azure_project:
+  target: dev
+  outputs:
+    dev:
+      type: sqlserver
+      driver: ODBC Driver 17 for SQL Server
+      server: rdvsqlserver.database.windows.net
+      port: 1433
+      database: DataWarehouse
+      schema: dev   # overridden by +schema in dbt_project.yml
+      user: "{{ env_var('DBT_USER') }}"
+      password: "{{ env_var('DBT_PASSWORD') }}"
+      encrypt: true
+      trust_cert: true

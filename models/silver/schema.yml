@@ -1,0 +1,60 @@
+﻿version: 2
+
+models:
+  - name: crm_cust_info
+    description: "Cleaned CRM customer data"
+    columns:
+      - name: cst_id
+        tests: [not_null, unique]
+      - name: cst_marital_status
+        tests:
+          - accepted_values:
+              values: ['Single','Married','n/a']
+      - name: cst_gndr
+        tests:
+          - accepted_values:
+              values: ['Male','Female','n/a']
+
+  - name: crm_prd_info
+    description: "Cleaned CRM product data"
+    columns:
+      - name: prd_id
+        tests: [not_null, unique]
+      - name: prd_cost
+        tests: [not_null]
+      - name: prd_line
+        tests:
+          - accepted_values:
+              values: ['Mountain','Road','Other Sales','Touring','n/a']
+
+  - name: crm_sales_details
+    description: "Cleaned CRM sales records"
+    columns:
+      - name: sls_sales
+        tests: [not_null]
+      - name: sls_quantity
+        tests: [not_null]
+      - name: sls_price
+        tests: [not_null]
+
+  - name: erp_cust_az12
+    description: "Standardized ERP customer data (AZ12)"
+    columns:
+      - name: cid
+        tests: [not_null]
+      - name: gen
+        tests:
+          - accepted_values:
+              values: ['Female','Male','n/a']
+
+  - name: erp_loc_a101
+    description: "ERP location data (A101)"
+    columns:
+      - name: cid
+        tests: [not_null]
+
+  - name: erp_px_cat_g1v2
+    description: "ERP price category data (G1V2)"
+    columns:
+      - name: cat
+        tests: [not_null]
