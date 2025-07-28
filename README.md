@@ -9,7 +9,7 @@ This project is a modernized, modular **data transformation pipeline** built wit
 ```
 data_warehouse_dbt/
 ├── models/                 # Core transformation logic
-│   ├── bronze/            # Raw ingested data
+│   ├── bronze/            # Raw ingested data (directly from seeds during silver transformation)
 │   ├── silver/            # Cleaned, structured data
 │   └── gold/              # Business-ready analytics
 ├── seeds/                 # Source CSV data (crm_cust_info, crm_sales_details, etc.)
