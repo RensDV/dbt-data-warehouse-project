@@ -1,114 +1,181 @@
-﻿# dbt Data Warehouse Project
+md
 
-Welcome to the refactored **Data Warehouse and Analytics Project**!  This version reâ€‘implements
-the original SQLâ€‘Server based warehouse as a dbt project running directly against an
-**Azure SQL Database**.  The goal remains the same â€“ to demonstrate a complete modern data
-warehouse across **bronze**, **silver** and **gold** layers â€“ but the implementation now
-leverages dbtâ€™s modelling, testing and documentation features and is containerised for easy
-reproduction.  The warehouse is no longer backed by SQLite; instead it uses your Azure SQL
-instance via the connection defined in `profiles.yml`.
+🏗️ dbt Data Warehouse Project
 
-In the original repository the project was described as a â€œBasic SQL Data Warehouse and
-Analytics Projectâ€ that showcases best practices in data architecture, ETL pipelines and data
-modelling.  This refactor preserves those concepts while replacing stored procedures with dbt
-models and connecting directly to your Azure SQL database.  Everything you need to build the
-warehouse is included in this repository â€“ from the raw CSV seeds to the dbt models, tests and
-documentation.
+This project is a modernized, modular data transformation pipeline built with dbt (Data Build Tool) and SQL, designed to simulate a realistic business scenario using customer and sales datasets. The pipeline implements a multi-layer architecture (Bronze → Silver → Gold) and uses Azure SQL Database as its data platform.
 
----
-## ðŸ—ï¸ Data Architecture
+📦 Project Structure
 
-The warehouse still follows the medallion architecture:
-
-1. **Bronze Layer** â€“ Raw data from the CRM and ERP systems is stored as seeds in the
-   `seeds/` directory.  Each CSV file is prefixed with `bronze_` to denote its role as a
-   landing table.
-2. **Silver Layer** â€“ Cleansed and standardised tables live in `models/silver/`.  These models
-   trim whitespace, normalise categorical values, convert dates and deduplicate records.
-3. **Gold Layer** â€“ Businessâ€‘ready dimensions and fact tables are defined in `models/gold/` as
-   views.  The star schema consists of `dim_customers`, `dim_products` and `fact_sales` (see
-   the data catalogue in `docs/data_catalog.md` for details).
-
----
-## ðŸš€ Getting Started
-
-### Running with Docker
-
-The easiest way to build and explore the warehouse is via Docker.  Make sure you have Docker
-and dockerâ€‘compose installed, then run:
-
-```bash
-# From the root of this repository
-docker-compose up --build
-```
-
-This command will build the Docker image, install dbt and the SQLÂ Server adapter, connect to
-your Azure SQL database and run the full pipeline.  It will:
-
-1. Load the CSV seeds into the **bronze** schema.
-2. Build the **silver** models in the silver schema.
-3. Build the **gold** models in the gold schema.
-4. Execute the defined tests against the gold layer.
-
-Because the warehouse lives on your Azure SQL instance, there is no local `warehouse.db` file.
-
-### Running Locally
-
-If you prefer not to use Docker you can run dbt directly on your machine.  Youâ€™ll need
-PythonÂ 3.11+ and the `dbt-core` and `dbt-sqlserver` packages.  Clone this repository and
-install the dependencies:
-
-```bash
-python3 -m venv .venv && source .venv/bin/activate
-pip install --no-cache-dir dbt-core dbt-sqlserver
-
-# Set the profiles directory so dbt finds profiles.yml in this repo
-export DBT_PROFILES_DIR=$(pwd)
-
-# Load seeds into the bronze schema
-dbt seed --full-refresh
-
-# Build silver and gold models
-dbt run
-
-# Run tests
-dbt test
-```
-
-### ðŸ“‚ Repository Structure
-
-```
 data_warehouse_dbt/
-â”‚
-â”œâ”€â”€ models/                       # dbt models organised by layer
-â”‚   â”œâ”€â”€ bronze/                   # (empty) â€“ bronze tables are created from seeds
-â”‚   â”œâ”€â”€ silver/                   # cleansing and transformation logic
-â”‚   â”œâ”€â”€ gold/                     # businessâ€‘ready dimensions and fact tables
-â”‚   â””â”€â”€ schema.yml               # documentation and tests for models
-â”‚
-â”œâ”€â”€ seeds/                        # Raw CSV files (bronze layer)
-â”‚
-â”œâ”€â”€ docs/                         # Data catalogue, naming conventions, diagrams
-â”‚
-â”œâ”€â”€ projectplan/                  # Highâ€‘level implementation plan
-â”‚
-â”œâ”€â”€ dbt_project.yml               # dbt project configuration
-â”œâ”€â”€ profiles.yml                  # dbt profiles pointing at your Azure SQL database
-â”œâ”€â”€ Dockerfile                    # Container specification for building and running the project
-â”œâ”€â”€ docker-compose.yml            # dockerâ€‘compose wrapper to run the pipeline
-â””â”€â”€ README.md                     # This file
-```
+├── models/                 # Core transformation logic
+│   ├── bronze/            # Raw ingested data
+│   ├── silver/            # Cleaned, structured data
+│   └── gold/              # Business-ready analytics
+├── seeds/                 # Source CSV data (crm_cust_info, crm_sales_details, etc.)
+├── macros/                # Reusable logic/macros
+├── dbt_project.yml        # Project config
+├── profiles.yml           # dbt profile for database connection (sanitize before sharing)
+├── README.md              # You're here!
+└── .gitignore             # Clean exclusions for Git
 
-## ðŸ§ª Tests and Documentation
+🚀 Getting Started
 
-Each model is accompanied by tests defined in `models/schema.yml`.  dbt will run these tests
-after executing the models to validate assumptions such as uniqueness of primary keys, allowed
-values for categorical fields and nonâ€‘null constraints.  Additional project documentation,
-including the data catalogue and naming conventions, resides in the `docs/` directory and has
-been updated to reflect the dbt workflow.
+🔧 Prerequisites
 
-## ðŸ›¡ï¸ License & Attribution
+Python 3.10+
 
-The original project was licensed under MIT, and this adaptation inherits the same license.
-Credits go to **RensÂ DeÂ Vent** for designing the initial SQL data warehouse project.  This
-version refactors the ETL into dbt and connects directly to Azure SQL for portability.
+dbt-core and dbt-sqlserver installed:
+
+pip install dbt-core dbt-sqlserver
+
+Access to an Azure SQL Database
+
+🛠️ Configuration
+
+Edit profiles.yml to match your Azure SQL connection. Use environment variables for security:
+
+dev:
+  target: dev_gold
+  outputs:
+    dev_gold:
+      type: sqlserver
+      server: your_server.database.windows.net
+      port: 1433
+      database: DataWarehouse
+      schema: gold
+      user: {{ env_var('DBT_USER') }}
+      password: {{ env_var('DBT_PASSWORD') }}
+      encrypt: true
+      trust_cert: true
+
+Set these environment variables:
+
+export DBT_USER=your_user
+export DBT_PASSWORD=your_password
+
+🧪 Running the Project
+
+From the root folder:
+
+dbt deps       # (if using dbt packages)
+dbt seed       # Load CSVs into Azure SQL (Bronze layer)
+dbt run        # Run all models (Bronze → Silver → Gold)
+dbt test       # Run tests defined in .yml configs
+dbt docs generate && dbt docs serve  # Launch documentation site
+
+📊 Data Pipeline Overview
+
+🟫 Bronze Layer
+
+Raw ingestion from seeds/ CSVs (e.g. crm_cust_info, crm_sales_details)
+
+Minimal transformations (renaming, timestamps)
+
+🪙 Silver Layer
+
+Applies cleaning and normalization
+
+Deduplicates records, parses countries, handles nulls
+
+Ready for business joins
+
+🥇 Gold Layer
+
+Final facts and dimensions
+
+Includes:
+
+fact_sales
+
+dim_customer
+
+dim_product
+
+Optimized for use in BI tools like Power BI
+
+📐 Modeling Philosophy
+
+Modular folder-based dbt layout
+
+Reproducible, testable SQL logic with clear layer separation
+
+Naming convention: bronze_*, silver_*, dim_*, fact_*
+
+Seed → Bronze → Silver → Gold pattern ensures traceability
+
+📚 Useful dbt Commands
+
+dbt run --select silver/       # Only run silver layer
+
+# Run with logs and partial refresh:
+dbt run --full-refresh
+
+# Debug connection
+DBT_USER=xxx DBT_PASSWORD=yyy dbt debug
+
+🔍 Testing & Documentation
+
+Tests are defined in .yml files:
+
+unique, not_null, accepted_values
+
+Document your models with description: fields
+
+Auto-generate docs:
+
+dbt docs generate
+dbt docs serve
+
+📊 Power BI Integration
+
+Once Gold models are deployed to Azure SQL, they can be directly imported into Power BI via SQL Server connector.
+Recommended visuals:
+
+Sales over time by customer and product
+
+Country segmentation and volume
+
+🧠 Architecture Trade-offs
+
+Design Decision
+
+Benefit
+
+Trade-off / Risk
+
+Azure SQL instead of Data Lake
+
+Easier setup, familiar SQL workflow
+
+Less scalable for big data / streaming
+
+SQL-only dbt transformations
+
+Simpler onboarding for analysts
+
+No complex logic or ML integrations
+
+Seeded CSV → Azure Bronze
+
+Fast local dev and testing
+
+Not a true real-time ingestion simulation
+
+Flat file → Bronze → Silver → Gold
+
+Great transparency and modularity
+
+More verbose and step-heavy than ELT-in-one
+
+Use of dbt view materializations
+
+Easy to inspect logic in DB
+
+Potentially slow queries for large datasets
+
+🙌 Credits
+
+Built by Rens De Vent — data engineer and digital nomad.
+
+Feel free to fork, star ⭐, or suggest improvements!
+
