@@ -1,6 +1,64 @@
 # 🏗️ dbt Data Warehouse Project
 
-This project is a modernized, modular **data transformation pipeline** built with `dbt` (Data Build Tool) and SQL, designed to simulate a realistic business scenario using customer and sales datasets. The pipeline implements a **multi-layer architecture** (Bronze → Silver → Gold) and uses **Azure SQL Database** as its data platform.
+This project is a modernized, modular **data transformation pipeline** built with [dbt](https://docs.getdbt.com) (Data Build Tool) and SQL. It simulates a realistic business scenario using customer and sales datasets. The pipeline follows a **multi-layer architecture** (Bronze → Silver → Gold) and runs on **Azure SQL Database**.
+
+---
+
+## ⚡ Quickstart
+
+1. Clone the repo
+   ```bash
+   git clone https://github.com/yourusername/data_warehouse_dbt.git
+   cd data_warehouse_dbt
+   ```
+
+2. Create and activate a virtual env  
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate   # Mac/Linux
+   .venv\Scripts\activate      # Windows
+   ```
+
+3. Install dependencies  
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. Set environment variables (adjust values for your Azure SQL Database):  
+   ```bash
+   export DBT_USER=your_user
+   export DBT_PASSWORD=your_password
+   export DBT_HOST=your_server.database.windows.net
+   export DBT_DB=DataWarehouse
+   export DBT_SCHEMA=dev
+   ```
+
+5. Test your connection  
+   ```bash
+   dbt debug
+   ```
+
+6. Load seed data & build pipeline  
+   ```bash
+   dbt seed
+   dbt run
+   dbt test
+   ```
+
+7. Explore documentation site  
+   ```bash
+   dbt docs generate && dbt docs serve
+   ```
+
+---
+
+## 🧾 Versions Tested
+
+- Python: 3.11.6
+- dbt-core: 1.10.9  
+- dbt-sqlserver: 1.9.0  
+
+(Confirm locally with `dbt --version`.)
 
 ---
 
@@ -9,65 +67,38 @@ This project is a modernized, modular **data transformation pipeline** built wit
 ```
 data_warehouse_dbt/
 ├── models/                 # Core transformation logic
-│   ├── bronze/            # Raw ingested data (directly from seeds during silver transformation)
-│   ├── silver/            # Cleaned, structured data
-│   └── gold/              # Business-ready analytics
-├── seeds/                 # Source CSV data (crm_cust_info, crm_sales_details, etc.)
-├── macros/                # Reusable logic/macros
-├── dbt_project.yml        # Project config
-├── profiles.yml           # dbt profile for database connection (sanitize before sharing)
-├── README.md              # You're here!
-└── .gitignore             # Clean exclusions for Git
+│   ├── bronze/             # Raw ingested data (from seeds)
+│   ├── silver/             # Cleaned, structured data
+│   └── gold/               # Business-ready analytics
+├── seeds/                  # Source CSV data (crm_cust_info, crm_sales_details, etc.)
+├── macros/                 # Reusable macros
+├── dbt_project.yml         # Project config
+├── profiles.yml            # dbt profile (uses env vars for credentials)
+├── requirements.txt        # Python dependencies
+├── README.md               # This file
+└── .gitignore              # Ignore .venv, target/, logs/, dbt_packages/
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🛠️ Configuration
 
-### 🔧 Prerequisites
-- Python 3.10+
-- `dbt-core` and `dbt-sqlserver` installed:
-  ```bash
-  pip install dbt-core dbt-sqlserver
-  ```
-- Access to an **Azure SQL Database**
+Your `profiles.yml` references environment variables for credentials and schema:
 
-### 🛠️ Configuration
-
-Edit `profiles.yml` to match your Azure SQL connection. Use environment variables for security:
 ```yaml
-dev:
-  target: dev_gold
+my_azure_project:
+  target: dev
   outputs:
-    dev_gold:
+    dev:
       type: sqlserver
-      server: your_server.database.windows.net
+      server: "{{ env_var('DBT_HOST') }}"
       port: 1433
-      database: DataWarehouse
-      schema: gold
-      user: {{ env_var('DBT_USER') }}
-      password: {{ env_var('DBT_PASSWORD') }}
+      database: "{{ env_var('DBT_DB') }}"
+      schema: "{{ env_var('DBT_SCHEMA') }}"
+      user: "{{ env_var('DBT_USER') }}"
+      password: "{{ env_var('DBT_PASSWORD') }}"
       encrypt: true
       trust_cert: true
-```
-
-Set these environment variables:
-```bash
-export DBT_USER=your_user
-export DBT_PASSWORD=your_password
-```
-
----
-
-## 🧪 Running the Project
-
-From the root folder:
-```bash
-dbt deps       # (if using dbt packages)
-dbt seed       # Load CSVs into Azure SQL (Bronze layer)
-dbt run        # Run all models (Bronze → Silver → Gold)
-dbt test       # Run tests defined in .yml configs
-dbt docs generate && dbt docs serve  # Launch documentation site
 ```
 
 ---
@@ -75,53 +106,56 @@ dbt docs generate && dbt docs serve  # Launch documentation site
 ## 📊 Data Pipeline Overview
 
 ### 🟫 Bronze Layer
-- **Raw ingestion** from `seeds/` CSVs (e.g. `crm_cust_info`, `crm_sales_details`)
-- Minimal transformations (renaming, timestamps)
+- Raw ingestion from `seeds/` CSVs (e.g., `crm_cust_info`, `crm_sales_details`)  
+- Minimal transformations: renaming, timestamps  
 
 ### 🪙 Silver Layer
-- Applies **cleaning and normalization**
-- Deduplicates records, parses countries, handles nulls
-- Ready for business joins
+- Cleansing & normalization  
+- Deduplication, null handling, parsing  
+- Ready for business joins  
 
 ### 🥇 Gold Layer
-- Final **facts and dimensions**
-- Includes:
-  - `fact_sales`
-  - `dim_customer`
-  - `dim_product`
-- Optimized for use in BI tools like Power BI
+- Business-ready fact and dimension tables  
+- Example outputs:  
+  - `fact_sales`  
+  - `dim_customers`  
+  - `dim_products`  
+- Optimized for BI/analytics tools  
 
 ---
 
 ## 📐 Modeling Philosophy
 
-- Modular folder-based dbt layout
-- Reproducible, testable SQL logic with clear layer separation
-- Naming convention: `bronze_*`, `silver_*`, `dim_*`, `fact_*`
-- Seed → Bronze → Silver → Gold pattern ensures traceability
+- Clear **Bronze → Silver → Gold** separation for transparency and lineage  
+- Reusable logic via **macros**  
+- **Tests + docs** stored alongside models for reproducibility  
+- Naming conventions: `bronze_*`, `silver_*`, `dim_*`, `fact_*`  
 
 ---
 
 ## 📚 Useful dbt Commands
 
 ```bash
-dbt run --select silver/       # Only run silver layer
+# Build only the silver layer
+dbt run --select silver/
 
-# Run with logs and partial refresh:
+# Force full refresh
 dbt run --full-refresh
 
+# Run tests
+dbt test
+
 # Debug connection
-DBT_USER=xxx DBT_PASSWORD=yyy dbt debug
+dbt debug
 ```
 
 ---
 
 ## 🔍 Testing & Documentation
 
-- Tests are defined in `.yml` files:
-  - `unique`, `not_null`, `accepted_values`
-- Document your models with `description:` fields
-- Auto-generate docs:
+- Tests live in `schema.yml` files (examples: `unique`, `not_null`)  
+- Document models with `description:` fields  
+- Generate & serve interactive documentation:  
   ```bash
   dbt docs generate
   dbt docs serve
@@ -129,29 +163,31 @@ DBT_USER=xxx DBT_PASSWORD=yyy dbt debug
 
 ---
 
-## 📊 Power BI Integration
+## 📊 Optional BI Integration
 
-Once Gold models are deployed to Azure SQL, they can be directly imported into Power BI via SQL Server connector.
-Recommended visuals:
-- Sales over time by customer and product
-- Country segmentation and volume
+Gold models are accessible directly in **Power BI** using the SQL Server connector.  
+
+Example visuals:
+- Sales trends by product and customer  
+- Country segmentation and sales volume  
 
 ---
 
 ## 🧠 Architecture Trade-offs
 
-| Design Decision                   | Benefit                                             | Trade-off / Risk                              |
-|----------------------------------|------------------------------------------------------|-----------------------------------------------|
-| Azure SQL instead of Data Lake   | Easier setup, familiar SQL workflow                 | Less scalable for big data / streaming        |
-| SQL-only dbt transformations     | Simpler onboarding for analysts                     | No complex logic or ML integrations           |
-| Seeded CSV → Azure Bronze        | Fast local dev and testing                          | Not a true real-time ingestion simulation     |
-| Flat file → Bronze → Silver → Gold | Great transparency and modularity                   | More verbose and step-heavy than ELT-in-one   |
-| Use of dbt `view` materializations | Easy to inspect logic in DB                         | Potentially slow queries for large datasets   |
+| Design Choice                  | Benefit                                 | Trade-off                                |
+|--------------------------------|-----------------------------------------|------------------------------------------|
+| Azure SQL instead of Data Lake | Easier setup, familiar SQL workflow     | Limited scalability for very large data   |
+| SQL-only dbt transformations   | Simpler onboarding                     | No advanced ML/streaming capabilities    |
+| Seeds → Bronze → Silver → Gold | Transparent lineage, modular            | More verbose than direct ELT              |
+| dbt `view` materializations    | Easy to inspect logic in DB             | Potentially slower queries on large data  |
 
 ---
 
 ## 🙌 Credits
 
-Built by [Rens De Vent](https://github.com/RensDV) — data engineer and digital nomad.
+Built by [Rens De Vent](https://github.com/RensDV) — Data Engineer & Digital Nomad.  
 
-> Feel free to fork, star ⭐, or suggest improvements!
+> Demo / learning project. Fork ⭐, explore, and adapt!
+
+
