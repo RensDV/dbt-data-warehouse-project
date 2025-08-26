@@ -4,10 +4,10 @@
     dev:
       type: sqlserver
       driver: ODBC Driver 17 for SQL Server
-      server: rdvsqlserver.database.windows.net
+      server: "{{ env_var('DBT_HOST') }}"
       port: 1433
-      database: DataWarehouse
-      schema: dev   # overridden by +schema in dbt_project.yml
+      database: "{{ env_var('DBT_DB') }}"
+      schema: "{{ env_var('DBT_SCHEMA') }}"   # overridden by +schema in dbt_project.yml
       user: "{{ env_var('DBT_USER') }}"
       password: "{{ env_var('DBT_PASSWORD') }}"
       encrypt: true
